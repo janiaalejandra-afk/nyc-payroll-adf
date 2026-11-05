@@ -1,11 +1,13 @@
 {
-    "name": "ls_adls_nycpayroll",
-    "properties": {
-        "description": "Azure Data Lake Storage Gen2 that holds the NYC payroll source files and the dirstaging output.",
-        "annotations": [],
-        "type": "AzureBlobFS",
-        "typeProperties": {
-            "url": "https://adlsnycpayrolljanias.dfs.core.windows.net/"
-        }
-    }
+	"name": "ls_adls_nycpayroll",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Azure Data Lake Storage Gen2 that holds the NYC payroll source files and the dirstaging output.",
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://adlsnycpayrolljanias.dfs.core.windows.net/",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEJBNzRGNjkzLTIxRTItNEMyRS05MTA3LUQ4RDlDRjA0OTlCM19kOTA2OWM2YS03ODU1LTQyNzctOGNjNC01OWVlMzVjZWUyZmEiDQp9"
+		}
+	}
 }
