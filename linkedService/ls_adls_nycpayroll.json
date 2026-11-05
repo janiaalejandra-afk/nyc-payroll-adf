@@ -1,0 +1,11 @@
+{
+    "name": "ls_adls_nycpayroll",
+    "properties": {
+        "description": "Azure Data Lake Storage Gen2 that holds the NYC payroll source files and the dirstaging output.",
+        "annotations": [],
+        "type": "AzureBlobFS",
+        "typeProperties": {
+            "url": "https://adlsnycpayrolljanias.dfs.core.windows.net/"
+        }
+    }
+}

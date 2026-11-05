@@ -1,0 +1,181 @@
+{
+    "name": "Dataflow_Summary",
+    "properties": {
+        "description": "Unions 2020 and 2021 payroll data from Azure SQL DB, filters by fiscal year (parameter), derives TotalPaid = RegularGrossPaid + TotalOTPaid + TotalOtherPay, aggregates by FiscalYear and AgencyName and writes the summary to the SQL DB summary table and to the dirstaging folder in Data Lake Gen2 (Synapse external table).",
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_sql_payroll_2020",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcSqlPayroll2020"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_sql_payroll_2021",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcSqlPayroll2021"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_sql_payroll_summary",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkSqlSummary"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_adls_payroll_summary_staging",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkDataLakeStaging"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "selectMapAgencyCode2021"
+                },
+                {
+                    "name": "unionPayroll"
+                },
+                {
+                    "name": "filterFiscalYear"
+                },
+                {
+                    "name": "derivedTotalPaid"
+                },
+                {
+                    "name": "aggregateTotalPaid"
+                }
+            ],
+            "scriptLines": [
+                "parameters{",
+                "\tdataflow_param_fiscalyear as integer (2020)",
+                "}",
+                "source(output(",
+                "\t\tFiscalYear as integer,",
+                "\t\tPayrollNumber as integer,",
+                "\t\tAgencyID as string,",
+                "\t\tAgencyName as string,",
+                "\t\tEmployeeID as string,",
+                "\t\tLastName as string,",
+                "\t\tFirstName as string,",
+                "\t\tAgencyStartDate as date,",
+                "\t\tWorkLocationBorough as string,",
+                "\t\tTitleCode as string,",
+                "\t\tTitleDescription as string,",
+                "\t\tLeaveStatusasofJune30 as string,",
+                "\t\tBaseSalary as double,",
+                "\t\tPayBasis as string,",
+                "\t\tRegularHours as double,",
+                "\t\tRegularGrossPaid as double,",
+                "\t\tOTHours as double,",
+                "\t\tTotalOTPaid as double,",
+                "\t\tTotalOtherPay as double",
+                "\t),",
+                "\tallowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tisolationLevel: 'READ_UNCOMMITTED',",
+                "\tformat: 'table') ~> srcSqlPayroll2020",
+                "source(output(",
+                "\t\tFiscalYear as integer,",
+                "\t\tPayrollNumber as integer,",
+                "\t\tAgencyCode as string,",
+                "\t\tAgencyName as string,",
+                "\t\tEmployeeID as string,",
+                "\t\tLastName as string,",
+                "\t\tFirstName as string,",
+                "\t\tAgencyStartDate as date,",
+                "\t\tWorkLocationBorough as string,",
+                "\t\tTitleCode as string,",
+                "\t\tTitleDescription as string,",
+                "\t\tLeaveStatusasofJune30 as string,",
+                "\t\tBaseSalary as double,",
+                "\t\tPayBasis as string,",
+                "\t\tRegularHours as double,",
+                "\t\tRegularGrossPaid as double,",
+                "\t\tOTHours as double,",
+                "\t\tTotalOTPaid as double,",
+                "\t\tTotalOtherPay as double",
+                "\t),",
+                "\tallowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tisolationLevel: 'READ_UNCOMMITTED',",
+                "\tformat: 'table') ~> srcSqlPayroll2021",
+                "srcSqlPayroll2021 select(mapColumn(",
+                "\t\tFiscalYear,",
+                "\t\tPayrollNumber,",
+                "\t\tAgencyID = AgencyCode,",
+                "\t\tAgencyName,",
+                "\t\tEmployeeID,",
+                "\t\tLastName,",
+                "\t\tFirstName,",
+                "\t\tAgencyStartDate,",
+                "\t\tWorkLocationBorough,",
+                "\t\tTitleCode,",
+                "\t\tTitleDescription,",
+                "\t\tLeaveStatusasofJune30,",
+                "\t\tBaseSalary,",
+                "\t\tPayBasis,",
+                "\t\tRegularHours,",
+                "\t\tRegularGrossPaid,",
+                "\t\tOTHours,",
+                "\t\tTotalOTPaid,",
+                "\t\tTotalOtherPay",
+                "\t),",
+                "\tskipDuplicateMapInputs: true,",
+                "\tskipDuplicateMapOutputs: true) ~> selectMapAgencyCode2021",
+                "srcSqlPayroll2020, selectMapAgencyCode2021 union(byName: true)~> unionPayroll",
+                "unionPayroll filter(toInteger(FiscalYear) >= $dataflow_param_fiscalyear) ~> filterFiscalYear",
+                "filterFiscalYear derive(TotalPaid = RegularGrossPaid + TotalOTPaid + TotalOtherPay) ~> derivedTotalPaid",
+                "derivedTotalPaid aggregate(groupBy(FiscalYear,",
+                "\t\tAgencyName),",
+                "\tTotalPaid = sum(TotalPaid)) ~> aggregateTotalPaid",
+                "aggregateTotalPaid sink(allowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tinput(",
+                "\t\tFiscalYear as integer,",
+                "\t\tAgencyName as string,",
+                "\t\tTotalPaid as double",
+                "\t),",
+                "\tdeletable:false,",
+                "\tinsertable:true,",
+                "\tupdateable:false,",
+                "\tupsertable:false,",
+                "\ttruncate:true,",
+                "\tformat: 'table',",
+                "\tskipDuplicateMapInputs: true,",
+                "\tskipDuplicateMapOutputs: true,",
+                "\terrorHandlingOption: 'stopOnFirstError',",
+                "\tmapColumn(",
+                "\t\tFiscalYear,",
+                "\t\tAgencyName,",
+                "\t\tTotalPaid",
+                "\t)) ~> sinkSqlSummary",
+                "aggregateTotalPaid sink(allowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tinput(",
+                "\t\tFiscalYear as string,",
+                "\t\tAgencyName as string,",
+                "\t\tTotalPaid as string",
+                "\t),",
+                "\ttruncate: true,",
+                "\tumask: 0022,",
+                "\tpreCommands: [],",
+                "\tpostCommands: [],",
+                "\tskipDuplicateMapInputs: true,",
+                "\tskipDuplicateMapOutputs: true,",
+                "\tmapColumn(",
+                "\t\tFiscalYear,",
+                "\t\tAgencyName,",
+                "\t\tTotalPaid",
+                "\t)) ~> sinkDataLakeStaging"
+            ]
+        }
+    }
+}

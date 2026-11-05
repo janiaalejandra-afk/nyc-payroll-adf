@@ -1,0 +1,99 @@
+{
+    "name": "df_load_payroll_2021",
+    "properties": {
+        "description": "Loads ds_adls_payroll_2021 (Data Lake Gen2) into ds_sql_payroll_2021 (Azure SQL DB).",
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_adls_payroll_2021",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcCsvFile"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_sql_payroll_2021",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkSqlTable"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "castDataTypes"
+                }
+            ],
+            "scriptLines": [
+                "source(output(",
+                "\t\tFiscalYear as string,",
+                "\t\tPayrollNumber as string,",
+                "\t\tAgencyCode as string,",
+                "\t\tAgencyName as string,",
+                "\t\tEmployeeID as string,",
+                "\t\tLastName as string,",
+                "\t\tFirstName as string,",
+                "\t\tAgencyStartDate as string,",
+                "\t\tWorkLocationBorough as string,",
+                "\t\tTitleCode as string,",
+                "\t\tTitleDescription as string,",
+                "\t\tLeaveStatusasofJune30 as string,",
+                "\t\tBaseSalary as string,",
+                "\t\tPayBasis as string,",
+                "\t\tRegularHours as string,",
+                "\t\tRegularGrossPaid as string,",
+                "\t\tOTHours as string,",
+                "\t\tTotalOTPaid as string,",
+                "\t\tTotalOtherPay as string",
+                "\t),",
+                "\tallowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tignoreNoFilesFound: false) ~> srcCsvFile",
+                "srcCsvFile derive(FiscalYear = toInteger(trim(FiscalYear)),",
+                "\t\tPayrollNumber = toInteger(trim(PayrollNumber)),",
+                "\t\tAgencyStartDate = coalesce(toDate(trim(left(trim(AgencyStartDate), 10)), 'M/d/yyyy'), toDate(left(trim(AgencyStartDate), 10), 'yyyy-MM-dd')),",
+                "\t\tBaseSalary = toDouble(trim(BaseSalary)),",
+                "\t\tRegularHours = toDouble(trim(RegularHours)),",
+                "\t\tRegularGrossPaid = toDouble(trim(RegularGrossPaid)),",
+                "\t\tOTHours = toDouble(trim(OTHours)),",
+                "\t\tTotalOTPaid = toDouble(trim(TotalOTPaid)),",
+                "\t\tTotalOtherPay = toDouble(trim(TotalOtherPay))) ~> castDataTypes",
+                "castDataTypes sink(allowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tinput(",
+                "\t\tFiscalYear as integer,",
+                "\t\tPayrollNumber as integer,",
+                "\t\tAgencyCode as string,",
+                "\t\tAgencyName as string,",
+                "\t\tEmployeeID as string,",
+                "\t\tLastName as string,",
+                "\t\tFirstName as string,",
+                "\t\tAgencyStartDate as date,",
+                "\t\tWorkLocationBorough as string,",
+                "\t\tTitleCode as string,",
+                "\t\tTitleDescription as string,",
+                "\t\tLeaveStatusasofJune30 as string,",
+                "\t\tBaseSalary as double,",
+                "\t\tPayBasis as string,",
+                "\t\tRegularHours as double,",
+                "\t\tRegularGrossPaid as double,",
+                "\t\tOTHours as double,",
+                "\t\tTotalOTPaid as double,",
+                "\t\tTotalOtherPay as double",
+                "\t),",
+                "\tdeletable:false,",
+                "\tinsertable:true,",
+                "\tupdateable:false,",
+                "\tupsertable:false,",
+                "\ttruncate:true,",
+                "\tformat: 'table',",
+                "\tskipDuplicateMapInputs: true,",
+                "\tskipDuplicateMapOutputs: true,",
+                "\terrorHandlingOption: 'stopOnFirstError') ~> sinkSqlTable"
+            ]
+        }
+    }
+}

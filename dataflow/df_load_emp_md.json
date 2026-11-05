@@ -1,0 +1,54 @@
+{
+    "name": "df_load_emp_md",
+    "properties": {
+        "description": "Loads ds_adls_emp_md (Data Lake Gen2) into ds_sql_emp_md (Azure SQL DB).",
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_adls_emp_md",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcCsvFile"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_sql_emp_md",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkSqlTable"
+                }
+            ],
+            "transformations": [],
+            "scriptLines": [
+                "source(output(",
+                "\t\tEmployeeID as string,",
+                "\t\tLastName as string,",
+                "\t\tFirstName as string",
+                "\t),",
+                "\tallowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tignoreNoFilesFound: false) ~> srcCsvFile",
+                "srcCsvFile sink(allowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tinput(",
+                "\t\tEmployeeID as string,",
+                "\t\tLastName as string,",
+                "\t\tFirstName as string",
+                "\t),",
+                "\tdeletable:false,",
+                "\tinsertable:true,",
+                "\tupdateable:false,",
+                "\tupsertable:false,",
+                "\ttruncate:true,",
+                "\tformat: 'table',",
+                "\tskipDuplicateMapInputs: true,",
+                "\tskipDuplicateMapOutputs: true,",
+                "\terrorHandlingOption: 'stopOnFirstError') ~> sinkSqlTable"
+            ]
+        }
+    }
+}

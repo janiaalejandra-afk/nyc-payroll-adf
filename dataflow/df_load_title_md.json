@@ -1,0 +1,52 @@
+{
+    "name": "df_load_title_md",
+    "properties": {
+        "description": "Loads ds_adls_title_md (Data Lake Gen2) into ds_sql_title_md (Azure SQL DB).",
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_adls_title_md",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcCsvFile"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_sql_title_md",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkSqlTable"
+                }
+            ],
+            "transformations": [],
+            "scriptLines": [
+                "source(output(",
+                "\t\tTitleCode as string,",
+                "\t\tTitleDescription as string",
+                "\t),",
+                "\tallowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tignoreNoFilesFound: false) ~> srcCsvFile",
+                "srcCsvFile sink(allowSchemaDrift: true,",
+                "\tvalidateSchema: false,",
+                "\tinput(",
+                "\t\tTitleCode as string,",
+                "\t\tTitleDescription as string",
+                "\t),",
+                "\tdeletable:false,",
+                "\tinsertable:true,",
+                "\tupdateable:false,",
+                "\tupsertable:false,",
+                "\ttruncate:true,",
+                "\tformat: 'table',",
+                "\tskipDuplicateMapInputs: true,",
+                "\tskipDuplicateMapOutputs: true,",
+                "\terrorHandlingOption: 'stopOnFirstError') ~> sinkSqlTable"
+            ]
+        }
+    }
+}

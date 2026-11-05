@@ -1,0 +1,11 @@
+{
+    "name": "ls_sqldb_nycpayroll",
+    "properties": {
+        "description": "Azure SQL Database db_nycpayroll (master data, payroll data and summary table). Version: Legacy.",
+        "annotations": [],
+        "type": "AzureSqlDatabase",
+        "typeProperties": {
+            "connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=sqlserver-nycpayroll-jania-s.database.windows.net;Initial Catalog=db_nycpayroll;User ID=sqladminuser"
+        }
+    }
+}
